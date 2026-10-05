@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>AR Sailing Ship Storm</title>
+
+<script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe-ar.jsscript>
+
+<style>
+html,body{
+    margin:0;
+    overflow:hidden;
+}
+
+#ui{
+    position:fixed;
+    left:10px;
+    bottom:10px;
+    z-index:9999;
+}
+
+button{
+    padding:12px 18px;
+    border:none;
+    border-radius:8px;
+    background:#1565c0;
+    color:white;
+    margin:4px;
+    cursor:pointer;
+    font-size:15px;
+}
+
+#status{
+    margin-top:10px;
+    background:rgba(0,0,0,0.7);
+    color:#fff;
+    padding:10px;
+    border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="ui">
+
+<button onclick="startStorm()">
+🌪️ Start Storm
+</button>
+
+<button onclick="stopStorm()">
+🛑 Stop Storm
+</button>
+
+<div id="status">
+Status :
+<span id="stormStatus">Calm</span>
+</div>
+
+</div>
+
+<a-scene
+embedded
+renderer="antialias:true; logarithmicDepthBuffer:true;"
+vr-mode-ui="enabled:false"
+arjs="sourceType:webcam;debugUIEnabled:false;">
+
+<a-marker preset="hiro">
+
+    <a-entity id="ship">
+
+        <!-- ตัวเรือ -->
+        <a-box
+            position="0 0.2 0"
+            width="1.8"
+            height="0.35"
+            depth="0.7"
+            color="#8D6E63">
+        </a-box>
+
+        <!-- หัวเรือ -->
+        <a-cone
+            position="1 0.2 0"
+            radius-bottom="0.35"
+            radius-top="0"
+            height="0.6"
+            rotation="0 0 -90"
+            color="#8D6E63">
+        </a-cone>
+
+        <!-- เสากระโดง -->
+        <a-cylinder
+            position="0 1.15 0"
+            radius="0.03"
+            height="2.2"
+            color="#4E342E">
+        </a-cylinder>
+
+        <!-- ใบเรือ -->
+        <a-plane
+            id="sail"
+            position="0.35 1.2 0"
+            width="1"
+            height="1.2"
+            color="#FFFDE7">
+        </a-plane>
+
+    </a-entity>
+
+    <!-- เมฆ -->
+
+    <a-sphere id="cloud1"
+        radius="0.18"
+        color="#616161"
+        position="1 2 0">
+    </a-sphere>
+
+    <a-sphere id="cloud2"
+        radius="0.18"
+        color="#757575"
+        position="-1 2 0">
+    </a-sphere>
+
+    <a-sphere id="cloud3"
+        radius="0.18"
+        color="#9E9E9E"
+        position="0 2 1">
+    </a-sphere>
+
+    <!-- ฟ้าผ่า -->
+
+    <a-box
+        id="lightning"
+        position="0 2.5 0"
+        width="0.06"
+        height="1.2"
+        depth="0.06"
+        color="yellow"
+        visible="false">
+    </a-box>
+
+</a-marker>
+
+<a-entity camera></a-entity>
+
+</a-scene>
+
+<script>
+
+let storm=false;
+
+function startStorm(){
+    storm=true;
+    document.getElementById("stormStatus").innerText="Storm";
+}
+
+function stopStorm(){
+
+    storm=false;
+
+    document.getElementById("stormStatus").innerText="Calm";
+
+    document
+      .querySelector("#ship")
+      .setAttribute("rotation","0 0 0");
+
+    document
+      .querySelector("#sail")
+      .setAttribute("rotation","0 0 0");
+
+    document
+      .querySelector("#lightning")
+      .setAttribute("visible",false);
+}
+
+AFRAME.registerComponent('storm-motion',{
+
+    tick:function(time){
+
+        if(!storm) return;
+
+        const ship=document.querySelector("#ship");
+        const sail=document.querySelector("#sail");
+
+        const wave=Math.sin(time*0.005);
+
+        ship.setAttribute(
+            "rotation",
+            (wave*8)+" 0 "+(wave*14)
+        );
+
+        sail.setAttribute(
+            "rotation",
+            "0 "+(wave*30)+" 0"
+        );
+
+        document
+        .querySelector("#cloud1")
+        .setAttribute(
+          "position",
+          `${Math.cos(time*0.002)*1.5} 2 ${Math.sin(time*0.002)*1.5}`
+        );
+
+        document
+        .querySelector("#cloud2")
+        .setAttribute(
+          "position",
+          `${Math.cos(time*0.003+2)*1.5} 2 ${Math.sin(time*0.003+2)*1.5}`
+        );
+
+        document
+        .querySelector("#cloud3")
+        .setAttribute(
+          "position",
+          `${Math.cos(time*0.004+4)*1.5} 2 ${Math.sin(time*0.004+4)*1.5}`
+        );
+
+        if(Math.random()>0.99){
+
+            const lightning=
+            document.querySelector("#lightning");
+
+            lightning.setAttribute(
+                "visible",
+                true
+            );
+
+            setTimeout(()=>{
+                lightning.setAttribute(
+                    "visible",
+                    false
+                );
+            },150);
+        }
+    }
+});
+
+window.addEventListener("load",()=>{
+
+    document
+      .querySelector("a-marker")
+      .setAttribute("storm-motion","");
+});
+
+</script>
+
+</body>
+</html>
